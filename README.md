@@ -3,7 +3,7 @@
 
 # Golang invoice generator
 
-Forked from `github.com/angelodlfrtr/go-invoice-generator` and porting backend to `https://github.com/signintech/gopdf`.
+Forked from `github.com/angelodlfrtr/go-invoice-generator` and ported backend to `https://github.com/signintech/gopdf`.
 
 A super fast golang package to generate invoices, delivery notes and quotations.
 
