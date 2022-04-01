@@ -1,4 +1,4 @@
-module github.com/angelodlfrtr/go-invoice-generator
+module github.com/microo8/go-invoicer
 
 go 1.18
 
@@ -15,7 +15,7 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/phpdave11/gofpdi v1.0.11 // indirect
+	github.com/phpdave11/gofpdi v1.0.13 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )
