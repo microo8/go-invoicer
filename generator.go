@@ -2,9 +2,14 @@
 package generator
 
 import (
+	_ "embed"
+
 	"github.com/creasty/defaults"
-	"github.com/jung-kurt/gofpdf"
+	"github.com/signintech/gopdf"
 )
+
+//go:embed Ubuntu-L.ttf
+var ubuntuTTF []byte
 
 // New return a new documents with provided types and defaults
 func New(docType string, options *Options) (*Document, error) {
@@ -15,7 +20,9 @@ func New(docType string, options *Options) (*Document, error) {
 		Type:    docType,
 	}
 
-	doc.pdf = gofpdf.New("P", "mm", "A4", "")
+	doc.pdf = &gopdf.GoPdf{}
+	doc.pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
+	doc.pdf.AddTTFFontData("Ubuntu", ubuntuTTF)
 
 	return doc, nil
 }

@@ -2,8 +2,6 @@ package generator
 
 // Options for Document
 type Options struct {
-	AutoPrint bool `json:"auto_print,omitempty"`
-
 	CurrencySymbol    string `default:"€ " json:"currency_symbol,omitempty"`
 	CurrencyPrecision int    `default:"2" json:"currency_precision,omitempty"`
 	CurrencyDecimal   string `default:"." json:"currency_decimal,omitempty"`
@@ -31,8 +29,8 @@ type Options struct {
 	TextTotalTax        string `default:"TAX" json:"text_total_tax,omitempty"`
 	TextTotalWithTax    string `default:"TOTAL WITH TAX" json:"text_total_with_tax,omitempty"`
 
-	BaseTextColor []int `default:"[35,35,35]" json:"base_text_color,omitempty"`
-	GreyTextColor []int `default:"[82,82,82]" json:"grey_text_color,omitempty"`
-	GreyBgColor   []int `default:"[232,232,232]" json:"grey_bg_color,omitempty"`
-	DarkBgColor   []int `default:"[212,212,212]" json:"dark_bg_color,omitempty"`
+	BaseTextColor []uint8 `default:"[35,35,35]" json:"base_text_color,omitempty"`
+	GreyTextColor []uint8 `default:"[82,82,82]" json:"grey_text_color,omitempty"`
+	GreyBgColor   []uint8 `default:"[232,232,232]" json:"grey_bg_color,omitempty"`
+	DarkBgColor   []uint8 `default:"[192,192,192]" json:"dark_bg_color,omitempty"`
 }

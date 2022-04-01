@@ -1,10 +1,10 @@
 package generator
 
-import "github.com/jung-kurt/gofpdf"
+import "github.com/signintech/gopdf"
 
 // Document define base document
 type Document struct {
-	pdf *gofpdf.Fpdf
+	pdf *gopdf.GoPdf
 
 	Options      *Options      `json:"options,omitempty"`
 	Header       *HeaderFooter `json:"header,omitempty"`

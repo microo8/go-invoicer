@@ -2,10 +2,12 @@ package generator
 
 import (
 	"bytes"
-	b64 "encoding/base64"
 	"image"
 
-	"github.com/jung-kurt/gofpdf"
+	_ "image/jpeg"
+	_ "image/png"
+
+	"github.com/signintech/gopdf"
 )
 
 // Contact contact a company informations
@@ -22,81 +24,88 @@ func (c *Contact) appendContactTODoc(
 	logoAlign string,
 	doc *Document,
 ) float64 {
-	doc.pdf.SetXY(x, y)
+	doc.pdf.SetX(x)
+	doc.pdf.SetY(y)
 
 	// Logo
 	if c.Logo != nil {
-		// Create filename
-		fileName := b64.StdEncoding.EncodeToString([]byte(c.Name))
-		// Create reader from logo bytes
-		ioReader := bytes.NewReader(*c.Logo)
-		// Get image format
-		_, format, _ := image.DecodeConfig(bytes.NewReader(*c.Logo))
-		// Register image in pdf
-		imageInfo := doc.pdf.RegisterImageOptionsReader(fileName, gofpdf.ImageOptions{
-			ImageType: format,
-		}, ioReader)
-
-		if imageInfo != nil {
-			var imageOpt gofpdf.ImageOptions
-			imageOpt.ImageType = format
-
-			doc.pdf.ImageOptions(fileName, doc.pdf.GetX(), y, 0, 30, false, imageOpt, 0, "")
-
-			doc.pdf.SetY(y + 30)
+		img, _, err := image.Decode(bytes.NewReader(*c.Logo))
+		if err != nil {
+			panic(err)
 		}
+		b := img.Bounds()
+		imgH, err := gopdf.ImageHolderByBytes(*c.Logo)
+		if err != nil {
+			panic(err)
+		}
+		if err := doc.pdf.ImageByHolderWithOptions(
+			imgH,
+			gopdf.ImageOptions{
+				X:    x,
+				Y:    y,
+				Rect: &gopdf.Rect{W: imageHeight * float64(b.Dx()) / float64(b.Dy()), H: imageHeight},
+				Transparency: &gopdf.Transparency{
+					Alpha:         0.0,
+					BlendModeType: "",
+				},
+			},
+		); err != nil {
+			panic(err)
+		}
+		doc.pdf.SetY(y + imageHeight + 3)
 	}
 
 	// Name
 	if fill {
-		doc.pdf.SetFillColor(
-			doc.Options.GreyBgColor[0],
-			doc.Options.GreyBgColor[1],
-			doc.Options.GreyBgColor[2],
-		)
+		doc.pdf.SetFillColor(doc.Options.GreyBgColor[0], doc.Options.GreyBgColor[1], doc.Options.GreyBgColor[2])
+		doc.pdf.SetStrokeColor(doc.Options.GreyBgColor[0], doc.Options.GreyBgColor[1], doc.Options.GreyBgColor[2])
 	} else {
 		doc.pdf.SetFillColor(255, 255, 255)
+		doc.pdf.SetStrokeColor(255, 255, 255)
 	}
 
-	// Reset x
-	doc.pdf.SetX(x)
-
 	// Name rect
-	doc.pdf.Rect(x, doc.pdf.GetY(), 70, 8, "F")
+	doc.pdf.Rectangle(x, doc.pdf.GetY(), x+ColumnWidth, doc.pdf.GetY()+LargeTextFontSize, "F", 0, 0)
 
+	// Reset x
+	doc.pdf.SetX(x + contactMargin)
 	// Set name
-	doc.pdf.SetFont("Helvetica", "B", 10)
-	doc.pdf.Cell(40, 8, c.Name)
-	doc.pdf.SetFont("Helvetica", "", 10)
+	doc.pdf.SetFont("Ubuntu", "B", LargeTextFontSize)
+	doc.pdf.Cell(nil, c.Name)
+	doc.pdf.SetFont("Ubuntu", "", LargeTextFontSize)
 
 	if c.Address != nil {
 		// Address rect
-		var addrRectHeight float64 = 17
+		var addrRectHeight float64 = LargeTextFontSize * 3
 
 		if len(c.Address.Address2) > 0 {
-			addrRectHeight = addrRectHeight + 5
+			addrRectHeight += LargeTextFontSize
+		}
+		if len(c.Address.Country) > 0 {
+			addrRectHeight += LargeTextFontSize
 		}
 
-		if len(c.Address.Country) == 0 {
-			addrRectHeight = addrRectHeight - 5
-		}
+		offsetY := doc.pdf.GetY() + LargeTextFontSize + 3
+		doc.pdf.SetFillColor(doc.Options.GreyBgColor[0], doc.Options.GreyBgColor[1], doc.Options.GreyBgColor[2])
+		doc.pdf.SetStrokeColor(doc.Options.GreyBgColor[0], doc.Options.GreyBgColor[1], doc.Options.GreyBgColor[2])
+		doc.pdf.Rectangle(x, offsetY, x+ColumnWidth, doc.pdf.GetY()+addrRectHeight+contactMargin*2, "F", 0, 0)
 
-		doc.pdf.Rect(x, doc.pdf.GetY()+9, 70, addrRectHeight, "F")
-
+		doc.pdf.SetFont("Ubuntu", "", LargeTextFontSize)
+		doc.pdf.SetX(x + contactMargin)
+		doc.pdf.SetY(offsetY + contactMargin)
 		// Set address
-		doc.pdf.SetFont("Helvetica", "", 10)
-		doc.pdf.SetXY(x, doc.pdf.GetY()+10)
-		doc.pdf.MultiCell(70, 5, c.Address.ToString(), "0", "L", false)
+		for _, line := range c.Address.lines() {
+			doc.pdf.MultiCell(&gopdf.Rect{W: ColumnWidth, H: addrRectHeight}, line)
+		}
 	}
 
 	return doc.pdf.GetY()
 }
 
 func (c *Contact) appendCompanyContactToDoc(doc *Document) float64 {
-	x, y, _, _ := doc.pdf.GetMargins()
-	return c.appendContactTODoc(x, y, true, "L", doc)
+	return c.appendContactTODoc(BaseMargin, BaseMarginTop, true, "L", doc)
 }
 
 func (c *Contact) appendCustomerContactToDoc(doc *Document) float64 {
-	return c.appendContactTODoc(130, BaseMarginTop+25, true, "R", doc)
+	return c.appendContactTODoc(PageWidth-BaseMargin-ColumnWidth, BaseMarginTop+45, true, "R", doc)
 }

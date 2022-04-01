@@ -5,6 +5,7 @@ import (
 
 	"github.com/leekchan/accounting"
 	"github.com/shopspring/decimal"
+	"github.com/signintech/gopdf"
 )
 
 // Item represent a 'product' or a 'service'
@@ -80,7 +81,7 @@ func (i *Item) taxWithDiscount() decimal.Decimal {
 
 func (i *Item) appendColTo(options *Options, doc *Document) {
 	ac := accounting.Accounting{
-		Symbol:    encodeString(options.CurrencySymbol),
+		Symbol:    (options.CurrencySymbol),
 		Precision: options.CurrencyPrecision,
 		Thousand:  options.CurrencyThousand,
 		Decimal:   options.CurrencyDecimal,
@@ -90,22 +91,20 @@ func (i *Item) appendColTo(options *Options, doc *Document) {
 	baseY := doc.pdf.GetY()
 
 	// Name
-	doc.pdf.SetX(ItemColNameOffset)
+	doc.pdf.SetX(BaseMargin + itemTitleMargin)
 	doc.pdf.MultiCell(
-		ItemColUnitPriceOffset-ItemColNameOffset,
-		3,
-		encodeString(i.Name),
-		"",
-		"",
-		false,
+		&gopdf.Rect{
+			W: ItemColUnitPriceOffset - BaseMargin - itemTitleMargin*2,
+			H: itemFontSize * 3,
+		},
+		i.Name,
 	)
 
 	// Description
 	if len(i.Description) > 0 {
-		doc.pdf.SetX(ItemColNameOffset)
-		doc.pdf.SetY(doc.pdf.GetY() + 1)
+		doc.pdf.SetX(BaseMargin + itemTitleMargin)
 
-		doc.pdf.SetFont("Helvetica", "", SmallTextFontSize)
+		doc.pdf.SetFont("Ubuntu", "", SmallTextFontSize)
 		doc.pdf.SetTextColor(
 			doc.Options.GreyTextColor[0],
 			doc.Options.GreyTextColor[1],
@@ -113,16 +112,15 @@ func (i *Item) appendColTo(options *Options, doc *Document) {
 		)
 
 		doc.pdf.MultiCell(
-			ItemColUnitPriceOffset-ItemColNameOffset,
-			3,
-			encodeString(i.Description),
-			"",
-			"",
-			false,
+			&gopdf.Rect{
+				W: ItemColUnitPriceOffset - BaseMargin - itemTitleMargin*2,
+				H: itemFontSize * 3,
+			},
+			i.Description,
 		)
 
 		// Reset font
-		doc.pdf.SetFont("Helvetica", "", BaseTextFontSize)
+		doc.pdf.SetFont("Ubuntu", "", BaseTextFontSize)
 		doc.pdf.SetTextColor(
 			doc.Options.BaseTextColor[0],
 			doc.Options.BaseTextColor[1],
@@ -136,60 +134,20 @@ func (i *Item) appendColTo(options *Options, doc *Document) {
 	// Unit price
 	doc.pdf.SetY(baseY)
 	doc.pdf.SetX(ItemColUnitPriceOffset)
-	doc.pdf.CellFormat(
-		ItemColQuantityOffset-ItemColUnitPriceOffset,
-		colHeight,
-		ac.FormatMoneyDecimal(i.unitCost()),
-		"0",
-		0,
-		"",
-		false,
-		0,
-		"",
-	)
+	doc.pdf.Cell(&gopdf.Rect{W: ItemColQuantityOffset - ItemColUnitPriceOffset, H: colHeight}, ac.FormatMoneyDecimal(i.unitCost())) //, "0", 0, "", false, 0, "")
 
 	// Quantity
 	doc.pdf.SetX(ItemColQuantityOffset)
-	doc.pdf.CellFormat(
-		ItemColTaxOffset-ItemColQuantityOffset,
-		colHeight,
-		i.quantity().String(),
-		"0",
-		0,
-		"",
-		false,
-		0,
-		"",
-	)
+	doc.pdf.Cell(&gopdf.Rect{W: ItemColTaxOffset - ItemColQuantityOffset, H: colHeight}, i.quantity().String()) //, "0", 0, "", false, 0, "")
 
 	// Total HT
 	doc.pdf.SetX(ItemColTotalHTOffset)
-	doc.pdf.CellFormat(
-		ItemColTaxOffset-ItemColTotalHTOffset,
-		colHeight,
-		ac.FormatMoneyDecimal(i.totalWithoutTax()),
-		"0",
-		0,
-		"",
-		false,
-		0,
-		"",
-	)
+	doc.pdf.Cell(&gopdf.Rect{W: ItemColTaxOffset - ItemColTotalHTOffset, H: colHeight}, ac.FormatMoneyDecimal(i.totalWithoutTax())) //, "0", 0, "", false, 0, "")
 
 	// Discount
 	doc.pdf.SetX(ItemColDiscountOffset)
 	if i.Discount == nil {
-		doc.pdf.CellFormat(
-			ItemColTotalTTCOffset-ItemColDiscountOffset,
-			colHeight,
-			"--",
-			"0",
-			0,
-			"",
-			false,
-			0,
-			"",
-		)
+		doc.pdf.Cell(&gopdf.Rect{W: ItemColTotalTTCOffset - ItemColDiscountOffset, H: colHeight}, "--")
 	} else {
 		// If discount
 		discountType, discountAmount := i.Discount.getDiscount()
@@ -197,13 +155,13 @@ func (i *Item) appendColTo(options *Options, doc *Document) {
 		var discountDesc string
 
 		if discountType == "percent" {
-			discountTitle = fmt.Sprintf("%s %s", discountAmount, encodeString("%"))
+			discountTitle = fmt.Sprintf("%s %s", discountAmount, "%")
 			// get amount from percent
 			dCost := i.totalWithoutTax()
 			dAmount := dCost.Mul(discountAmount.Div(decimal.NewFromFloat(100)))
 			discountDesc = fmt.Sprintf("-%s", ac.FormatMoneyDecimal(dAmount))
 		} else {
-			discountTitle = fmt.Sprintf("%s %s", discountAmount, encodeString("€"))
+			discountTitle = fmt.Sprintf("%s %s", discountAmount, "€")
 			dCost := i.totalWithoutTax()
 			dPerc := discountAmount.Mul(decimal.NewFromFloat(100))
 			dPerc = dPerc.Div(dCost)
@@ -213,41 +171,18 @@ func (i *Item) appendColTo(options *Options, doc *Document) {
 
 		// discount title
 		// lastY := doc.pdf.GetY()
-		doc.pdf.CellFormat(
-			ItemColTotalTTCOffset-ItemColDiscountOffset,
-			colHeight/2,
-			discountTitle,
-			"0",
-			0,
-			"LB",
-			false,
-			0,
-			"",
-		)
+		doc.pdf.Cell(&gopdf.Rect{W: ItemColTotalTTCOffset - ItemColDiscountOffset, H: colHeight / 2}, discountTitle)
 
 		// discount desc
-		doc.pdf.SetXY(ItemColDiscountOffset, baseY+(colHeight/2))
-		doc.pdf.SetFont("Helvetica", "", SmallTextFontSize)
-		doc.pdf.SetTextColor(
-			doc.Options.GreyTextColor[0],
-			doc.Options.GreyTextColor[1],
-			doc.Options.GreyTextColor[2],
-		)
+		doc.pdf.SetX(ItemColDiscountOffset)
+		doc.pdf.SetY(baseY + BaseTextFontSize)
+		doc.pdf.SetFont("Ubuntu", "", SmallTextFontSize)
+		doc.pdf.SetTextColor(doc.Options.GreyTextColor[0], doc.Options.GreyTextColor[1], doc.Options.GreyTextColor[2])
 
-		doc.pdf.CellFormat(
-			ItemColTotalTTCOffset-ItemColDiscountOffset,
-			colHeight/2,
-			discountDesc,
-			"0",
-			0,
-			"LT",
-			false,
-			0,
-			"",
-		)
+		doc.pdf.Cell(&gopdf.Rect{W: ItemColTotalTTCOffset - ItemColDiscountOffset, H: colHeight / 2}, discountDesc)
 
 		// reset font and y
-		doc.pdf.SetFont("Helvetica", "", BaseTextFontSize)
+		doc.pdf.SetFont("Ubuntu", "", BaseTextFontSize)
 		doc.pdf.SetTextColor(
 			doc.Options.BaseTextColor[0],
 			doc.Options.BaseTextColor[1],
@@ -260,17 +195,7 @@ func (i *Item) appendColTo(options *Options, doc *Document) {
 	doc.pdf.SetX(ItemColTaxOffset)
 	if i.Tax == nil {
 		// If no tax
-		doc.pdf.CellFormat(
-			ItemColDiscountOffset-ItemColTaxOffset,
-			colHeight,
-			"--",
-			"0",
-			0,
-			"",
-			false,
-			0,
-			"",
-		)
+		doc.pdf.Cell(&gopdf.Rect{W: ItemColDiscountOffset - ItemColTaxOffset, H: colHeight}, "--")
 	} else {
 		// If tax
 		taxType, taxAmount := i.Tax.getTax()
@@ -278,13 +203,13 @@ func (i *Item) appendColTo(options *Options, doc *Document) {
 		var taxDesc string
 
 		if taxType == "percent" {
-			taxTitle = fmt.Sprintf("%s %s", taxAmount, encodeString("%"))
+			taxTitle = fmt.Sprintf("%s %s", taxAmount, ("%"))
 			// get amount from percent
 			dCost := i.totalWithoutTaxAndWithDiscount()
 			dAmount := dCost.Mul(taxAmount.Div(decimal.NewFromFloat(100)))
 			taxDesc = ac.FormatMoneyDecimal(dAmount)
 		} else {
-			taxTitle = fmt.Sprintf("%s %s", taxAmount, encodeString("€"))
+			taxTitle = fmt.Sprintf("%s %s", taxAmount, ("€"))
 			dCost := i.totalWithoutTaxAndWithDiscount()
 			dPerc := taxAmount.Mul(decimal.NewFromFloat(100))
 			dPerc = dPerc.Div(dCost)
@@ -294,62 +219,25 @@ func (i *Item) appendColTo(options *Options, doc *Document) {
 
 		// tax title
 		// lastY := doc.pdf.GetY()
-		doc.pdf.CellFormat(
-			ItemColDiscountOffset-ItemColTaxOffset,
-			colHeight/2,
-			taxTitle,
-			"0",
-			0,
-			"LB",
-			false,
-			0,
-			"",
-		)
+		doc.pdf.Cell(&gopdf.Rect{W: ItemColDiscountOffset - ItemColTaxOffset, H: colHeight / 2}, taxTitle)
 
 		// tax desc
-		doc.pdf.SetXY(ItemColTaxOffset, baseY+(colHeight/2))
-		doc.pdf.SetFont("Helvetica", "", SmallTextFontSize)
-		doc.pdf.SetTextColor(
-			doc.Options.GreyTextColor[0],
-			doc.Options.GreyTextColor[1],
-			doc.Options.GreyTextColor[2],
-		)
+		doc.pdf.SetX(ItemColTaxOffset)
+		doc.pdf.SetY(baseY + BaseTextFontSize)
+		doc.pdf.SetFont("Ubuntu", "", SmallTextFontSize)
+		doc.pdf.SetTextColor(doc.Options.GreyTextColor[0], doc.Options.GreyTextColor[1], doc.Options.GreyTextColor[2])
 
-		doc.pdf.CellFormat(
-			ItemColDiscountOffset-ItemColTaxOffset,
-			colHeight/2,
-			taxDesc,
-			"0",
-			0,
-			"LT",
-			false,
-			0,
-			"",
-		)
+		doc.pdf.Cell(&gopdf.Rect{W: ItemColDiscountOffset - ItemColTaxOffset, H: colHeight / 2}, taxDesc)
 
 		// reset font and y
-		doc.pdf.SetFont("Helvetica", "", BaseTextFontSize)
-		doc.pdf.SetTextColor(
-			doc.Options.BaseTextColor[0],
-			doc.Options.BaseTextColor[1],
-			doc.Options.BaseTextColor[2],
-		)
+		doc.pdf.SetFont("Ubuntu", "", BaseTextFontSize)
+		doc.pdf.SetTextColor(doc.Options.BaseTextColor[0], doc.Options.BaseTextColor[1], doc.Options.BaseTextColor[2])
 		doc.pdf.SetY(baseY)
 	}
 
 	// TOTAL TTC
 	doc.pdf.SetX(ItemColTotalTTCOffset)
-	doc.pdf.CellFormat(
-		190-ItemColTotalTTCOffset,
-		colHeight,
-		ac.FormatMoneyDecimal(i.totalWithTaxAndDiscount()),
-		"0",
-		0,
-		"",
-		false,
-		0,
-		"",
-	)
+	doc.pdf.Cell(&gopdf.Rect{W: 190 - ItemColTotalTTCOffset, H: colHeight}, ac.FormatMoneyDecimal(i.totalWithTaxAndDiscount()))
 
 	// Set Y for next line
 	doc.pdf.SetY(baseY + colHeight)

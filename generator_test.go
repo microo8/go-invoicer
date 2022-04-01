@@ -1,19 +1,17 @@
 package generator
 
 import (
-	"io/ioutil"
+	_ "embed"
 	"testing"
 )
+
+//go:embed example_logo.png
+var logoBytes []byte
 
 func TestNew(t *testing.T) {
 	doc, _ := New(Invoice, &Options{
 		TextTypeInvoice: "FACTURE",
 		TextRefTitle:    "Réàf.",
-		AutoPrint:       true,
-		BaseTextColor:   []int{6, 63, 156},
-		GreyTextColor:   []int{161, 96, 149},
-		GreyBgColor:     []int{171, 240, 129},
-		DarkBgColor:     []int{176, 12, 20},
 	})
 
 	doc.SetHeader(&HeaderFooter{
@@ -34,8 +32,6 @@ func TestNew(t *testing.T) {
 
 	doc.SetDate("02/03/2021")
 	doc.SetPaymentTerm("02/04/2021")
-
-	logoBytes, _ := ioutil.ReadFile("./example_logo.png")
 
 	doc.SetCompany(&Contact{
 		Name: "Test Company",
@@ -117,7 +113,7 @@ func TestNew(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	err = pdf.OutputFileAndClose("out.pdf")
+	err = pdf.WritePdf("out.pdf")
 
 	if err != nil {
 		t.Errorf(err.Error())

@@ -11,30 +11,20 @@ type Address struct {
 
 // ToString output address as string
 // Line break are added for new lines
-func (a *Address) ToString() string {
-	var addrString string = a.Address
-
+func (a *Address) lines() []string {
+	res := []string{
+		a.Address,
+	}
 	if len(a.Address2) > 0 {
-		addrString += "\n"
-		addrString += a.Address2
+		res = append(res, a.Address2)
 	}
-
 	if len(a.PostalCode) > 0 {
-		addrString += "\n"
-		addrString += a.PostalCode
-	} else {
-		addrString += "\n"
-	}
-
-	if len(a.City) > 0 {
-		addrString += " "
-		addrString += a.City
+		res = append(res, a.PostalCode+" "+a.City)
 	}
 
 	if len(a.Country) > 0 {
-		addrString += "\n"
-		addrString += a.Country
+		res = append(res, a.Country)
 	}
 
-	return addrString
+	return res
 }
