@@ -10,8 +10,9 @@ var logoBytes []byte
 
 func TestNew(t *testing.T) {
 	doc, _ := New(Invoice, &Options{
-		TextTypeInvoice: "FACTURE",
-		TextRefTitle:    "Réàf.",
+		TextTypeInvoice:        "FACTURE",
+		TextRefTitle:           "Réàf.",
+		TextItemsUnitCostTitle: "ipsum dolor sit amet bonbon",
 	})
 
 	doc.SetHeader(&HeaderFooter{
@@ -42,6 +43,11 @@ func TestNew(t *testing.T) {
 			PostalCode: "75000",
 			City:       "Paris",
 			Country:    "France",
+			BusinessID: "21343214321",
+			TaxID:      "215421543215",
+			VAT:        "45432523543",
+			IBAN:       "HU1200005432503454350",
+			BankName:   "MehMeh bank",
 		},
 	})
 

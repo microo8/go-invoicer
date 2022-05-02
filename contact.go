@@ -76,14 +76,8 @@ func (c *Contact) appendContactTODoc(
 
 	if c.Address != nil {
 		// Address rect
-		var addrRectHeight float64 = LargeTextFontSize * 3
-
-		if len(c.Address.Address2) > 0 {
-			addrRectHeight += LargeTextFontSize
-		}
-		if len(c.Address.Country) > 0 {
-			addrRectHeight += LargeTextFontSize
-		}
+		lines := c.Address.lines()
+		var addrRectHeight float64 = LargeTextFontSize * float64(len(lines)+1)
 
 		offsetY := doc.pdf.GetY() + LargeTextFontSize + 3
 		doc.pdf.SetFillColor(doc.Options.GreyBgColor[0], doc.Options.GreyBgColor[1], doc.Options.GreyBgColor[2])
@@ -94,7 +88,7 @@ func (c *Contact) appendContactTODoc(
 		doc.pdf.SetX(x + contactMargin)
 		doc.pdf.SetY(offsetY + contactMargin)
 		// Set address
-		for _, line := range c.Address.lines() {
+		for _, line := range lines {
 			doc.pdf.MultiCell(&gopdf.Rect{W: ColumnWidth, H: addrRectHeight}, line)
 		}
 	}

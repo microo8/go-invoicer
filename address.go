@@ -7,6 +7,11 @@ type Address struct {
 	PostalCode string `json:"postal_code,omitempty"`
 	City       string `json:"city,omitempty"`
 	Country    string `json:"country,omitempty"`
+	BusinessID string
+	TaxID      string
+	VAT        string
+	IBAN       string
+	BankName   string
 }
 
 // ToString output address as string
@@ -21,9 +26,23 @@ func (a *Address) lines() []string {
 	if len(a.PostalCode) > 0 {
 		res = append(res, a.PostalCode+" "+a.City)
 	}
-
 	if len(a.Country) > 0 {
 		res = append(res, a.Country)
+	}
+	if len(a.BusinessID) > 0 {
+		res = append(res, a.BusinessID)
+	}
+	if len(a.TaxID) > 0 {
+		res = append(res, a.TaxID)
+	}
+	if len(a.VAT) > 0 {
+		res = append(res, a.VAT)
+	}
+	if len(a.IBAN) > 0 {
+		res = append(res, a.IBAN)
+	}
+	if len(a.BankName) > 0 {
+		res = append(res, a.BankName)
 	}
 
 	return res

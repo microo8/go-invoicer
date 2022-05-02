@@ -35,7 +35,7 @@ const (
 	ItemColTotalHTOffset float64 = PageWidth * 0.55
 
 	// ItemColDiscountOffset ...
-	ItemColDiscountOffset float64 = PageWidth * 0.65
+	ItemColDiscountOffset float64 = PageWidth * 0.69
 
 	// ItemColTaxOffset ...
 	ItemColTaxOffset float64 = PageWidth * 0.75

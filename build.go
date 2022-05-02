@@ -187,7 +187,13 @@ func (doc *Document) drawsTableTitles() {
 
 	// Unit price
 	doc.pdf.SetX(ItemColUnitPriceOffset)
-	doc.pdf.Cell(nil, doc.Options.TextItemsUnitCostTitle)
+	doc.pdf.Cell(
+		&gopdf.Rect{
+			W: ItemColQuantityOffset - ItemColUnitPriceOffset,
+			H: itemFontSize + itemTitleMargin,
+		},
+		doc.Options.TextItemsUnitCostTitle,
+	)
 
 	// Quantity
 	doc.pdf.SetX(ItemColQuantityOffset)
@@ -347,7 +353,7 @@ func (doc *Document) appendTotal() {
 	doc.pdf.SetX(PageWidth - BaseMargin - ColumnWidth)
 	doc.pdf.CellWithOption(
 		&gopdf.Rect{W: ColumnWidth/2 - totalMargin, H: LargeTextFontSize + totalMargin*2},
-		doc.Options.TextTotalTotal,
+		doc.Options.TextTotalNoTax,
 		gopdf.CellOption{Align: gopdf.Middle | gopdf.Right},
 	)
 
@@ -437,7 +443,7 @@ func (doc *Document) appendTotal() {
 	doc.pdf.SetX(PageWidth - BaseMargin - ColumnWidth)
 	doc.pdf.CellWithOption(
 		&gopdf.Rect{W: ColumnWidth/2 - totalMargin, H: LargeTextFontSize + totalMargin*2},
-		doc.Options.TextTotalTotal,
+		doc.Options.TextTotalTax,
 		gopdf.CellOption{Align: gopdf.Middle | gopdf.Right},
 	)
 
